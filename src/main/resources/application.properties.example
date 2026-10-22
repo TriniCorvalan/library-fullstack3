@@ -1,0 +1,11 @@
+spring.application.name=library
+
+spring.datasource.url=jdbc:oracle:thin:@TU_TNS_ALIAS_tp?TNS_ADMIN=/ruta/absoluta/a/Wallet_TG243BR3UDTANBR0
+spring.datasource.username=TU_USUARIO
+spring.datasource.password=TU_PASSWORD
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.OracleDialect
+spring.jpa.hibernate.ddl-auto=update
+
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.connection-timeout=30000
