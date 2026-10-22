@@ -1,6 +1,6 @@
 spring.application.name=library
 
-spring.datasource.url=jdbc:oracle:thin:@TU_TNS_ALIAS_tp?TNS_ADMIN=/ruta/absoluta/a/Wallet_TG243BR3UDTANBR0
+spring.datasource.url=jdbc:oracle:thin:@TU_TNS_ALIAS_tp?TNS_ADMIN=${user.home}/oracle_wallets/library
 spring.datasource.username=TU_USUARIO
 spring.datasource.password=TU_PASSWORD
 spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
