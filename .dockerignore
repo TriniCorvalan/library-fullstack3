@@ -1,0 +1,7 @@
+target
+.git
+.vscode
+*.md
+.mvn/wrapper/maven-wrapper.jar
+Dockerfile
+docker-compose.yml
