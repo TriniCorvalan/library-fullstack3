@@ -9,3 +9,7 @@ spring.jpa.hibernate.ddl-auto=update
 
 spring.datasource.hikari.maximum-pool-size=10
 spring.datasource.hikari.connection-timeout=30000
+
+# Debe coincidir con jwt.secret de ms-usuarios
+jwt.secret=ForoJwtSecretKey2026DuocFullstackIIIExp1Semana2Segura
+jwt.expiration-ms=86400000

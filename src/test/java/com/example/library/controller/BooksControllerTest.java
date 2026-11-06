@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,118 +20,141 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.library.model.Book;
+import com.example.library.security.JwtAuthenticationFilter;
+import com.example.library.security.JwtService;
+import com.example.library.security.SecurityConfig;
 import com.example.library.service.BookService;
 
 import tools.jackson.databind.json.JsonMapper;
 
 @WebMvcTest(BooksController.class)
+@Import({ SecurityConfig.class, JwtService.class, JwtAuthenticationFilter.class })
+@TestPropertySource(properties = {
+		"jwt.secret=ForoJwtSecretKey2026DuocFullstackIIIExp1Semana2Segura",
+		"jwt.expiration-ms=86400000"
+})
 class BooksControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+	@Autowired
+	private MockMvc mockMvc;
 
-    @Autowired
-    private JsonMapper jsonMapper;
+	@Autowired
+	private JsonMapper jsonMapper;
 
-    @MockitoBean
-    private BookService bookService;
+	@MockitoBean
+	private BookService bookService;
 
-    private Book book;
+	private Book book;
 
-    @BeforeEach
-    void setBook() {
-        book = new Book(1L, "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967);
-    }
+	@BeforeEach
+	void setBook() {
+		book = new Book(1L, "Cien años de soledad", "Gabriel García Márquez", "Realismo mágico", 1967);
+	}
 
-    @Test
-    void getAllBooksReturnsList() throws Exception {
-        when(bookService.getAllBooks()).thenReturn(List.of(book));
+	@Test
+	void getAllBooksReturnsList() throws Exception {
+		when(bookService.getAllBooks()).thenReturn(List.of(book));
 
-        mockMvc.perform(get("/books"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].title").value("Cien años de soledad"));
-    }
+		mockMvc.perform(get("/books"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].id").value(1))
+				.andExpect(jsonPath("$[0].title").value("Cien años de soledad"));
+	}
 
-    @Test
-    void getBookByIdWhenFoundReturnsOk() throws Exception {
-        when(bookService.getBookById(1L)).thenReturn(book);
+	@Test
+	void getBookByIdWhenFoundReturnsOk() throws Exception {
+		when(bookService.getBookById(1L)).thenReturn(book);
 
-        mockMvc.perform(get("/books/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.title").value("Cien años de soledad"));
-    }
+		mockMvc.perform(get("/books/1"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(1))
+				.andExpect(jsonPath("$.title").value("Cien años de soledad"));
+	}
 
-    @Test
-    void getBookByIdWhenMissingReturnsNotFound() throws Exception {
-        when(bookService.getBookById(99L)).thenReturn(null);
+	@Test
+	void getBookByIdWhenMissingReturnsNotFound() throws Exception {
+		when(bookService.getBookById(99L)).thenReturn(null);
 
-        mockMvc.perform(get("/books/99"))
-                .andExpect(status().isNotFound());
+		mockMvc.perform(get("/books/99"))
+				.andExpect(status().isNotFound());
 
-        verify(bookService).getBookById(99L);
-    }
+		verify(bookService).getBookById(99L);
+	}
 
-    @Test
-    void createBookReturnsCreatedResource() throws Exception {
-        when(bookService.createBook(any(Book.class))).thenReturn(book);
+	@Test
+	void createBookWithoutAuthReturnsUnauthorized() throws Exception {
+		mockMvc.perform(post("/books")
+						.contentType(APPLICATION_JSON)
+						.content(jsonMapper.writeValueAsString(book)))
+				.andExpect(status().isUnauthorized());
+	}
 
-        mockMvc.perform(post("/books")
-                        .contentType(APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(book)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.author").value("Gabriel García Márquez"));
+	@Test
+	void createBookReturnsCreatedResource() throws Exception {
+		when(bookService.createBook(any(Book.class))).thenReturn(book);
 
-        verify(bookService).createBook(any(Book.class));
-    }
+		mockMvc.perform(post("/books")
+						.with(user("admin@foro.cl").roles("ADMIN"))
+						.contentType(APPLICATION_JSON)
+						.content(jsonMapper.writeValueAsString(book)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(1))
+				.andExpect(jsonPath("$.author").value("Gabriel García Márquez"));
 
-    @Test
-    void updateBookWhenExistsReturnsOk() throws Exception {
-        when(bookService.updateBook(eq(1L), any(Book.class))).thenReturn(book);
+		verify(bookService).createBook(any(Book.class));
+	}
 
-        mockMvc.perform(put("/books/1")
-                        .contentType(APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(book)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1));
+	@Test
+	void updateBookWhenExistsReturnsOk() throws Exception {
+		when(bookService.updateBook(eq(1L), any(Book.class))).thenReturn(book);
 
-        verify(bookService).updateBook(eq(1L), any(Book.class));
-    }
+		mockMvc.perform(put("/books/1")
+						.with(user("admin@foro.cl").roles("ADMIN"))
+						.contentType(APPLICATION_JSON)
+						.content(jsonMapper.writeValueAsString(book)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(1));
 
-    @Test
-    void updateBookWhenMissingReturnsNotFoundBody() throws Exception {
-        when(bookService.updateBook(eq(1L), any(Book.class)))
-                .thenThrow(new RuntimeException("Book not found"));
+		verify(bookService).updateBook(eq(1L), any(Book.class));
+	}
 
-        mockMvc.perform(put("/books/1")
-                        .contentType(APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(book)))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Not found"))
-                .andExpect(jsonPath("$.message").value("Book not found"));
-    }
+	@Test
+	void updateBookWhenMissingReturnsNotFoundBody() throws Exception {
+		when(bookService.updateBook(eq(1L), any(Book.class)))
+				.thenThrow(new RuntimeException("Book not found"));
 
-    @Test
-    void deleteBookWhenExistsReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/books/1"))
-                .andExpect(status().isNoContent());
+		mockMvc.perform(put("/books/1")
+						.with(user("admin@foro.cl").roles("ADMIN"))
+						.contentType(APPLICATION_JSON)
+						.content(jsonMapper.writeValueAsString(book)))
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.error").value("Not found"))
+				.andExpect(jsonPath("$.message").value("Book not found"));
+	}
 
-        verify(bookService).deleteBook(1L);
-    }
+	@Test
+	void deleteBookWhenExistsReturnsNoContent() throws Exception {
+		mockMvc.perform(delete("/books/1")
+						.with(user("admin@foro.cl").roles("ADMIN")))
+				.andExpect(status().isNoContent());
 
-    @Test
-    void deleteBookWhenMissingReturnsNotFound() throws Exception {
-        doThrow(new RuntimeException("Book not found")).when(bookService).deleteBook(1L);
+		verify(bookService).deleteBook(1L);
+	}
 
-        mockMvc.perform(delete("/books/1"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Not found"))
-                .andExpect(jsonPath("$.message").value("Book not found"));
-    }
+	@Test
+	void deleteBookWhenMissingReturnsNotFound() throws Exception {
+		doThrow(new RuntimeException("Book not found")).when(bookService).deleteBook(1L);
+
+		mockMvc.perform(delete("/books/1")
+						.with(user("admin@foro.cl").roles("ADMIN")))
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.error").value("Not found"))
+				.andExpect(jsonPath("$.message").value("Book not found"));
+	}
 }
