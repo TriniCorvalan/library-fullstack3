@@ -1,7 +1,13 @@
 target
 .git
 .vscode
+.cursor
 *.md
-.mvn/wrapper/maven-wrapper.jar
-Dockerfile
+.env
+.env.*
+!/.env.example
+Wallet_TG243BR3UDTANBR0
+Wallet_MIBD
 docker-compose.yml
+CLAUDE.md
+GEMINI.md

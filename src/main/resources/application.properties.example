@@ -1,15 +1,18 @@
 spring.application.name=library
 
-spring.datasource.url=jdbc:oracle:thin:@TU_TNS_ALIAS_tp?TNS_ADMIN=${user.home}/oracle_wallets/library
-spring.datasource.username=TU_USUARIO
-spring.datasource.password=TU_PASSWORD
+# Preferir variables de entorno (ver .env.example). Este archivo documenta las claves.
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
 spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.OracleDialect
 spring.jpa.hibernate.ddl-auto=update
+spring.jpa.open-in-view=false
 
 spring.datasource.hikari.maximum-pool-size=10
 spring.datasource.hikari.connection-timeout=30000
 
-# Debe coincidir con jwt.secret de ms-usuarios
-jwt.secret=ForoJwtSecretKey2026DuocFullstackIIIExp1Semana2Segura
-jwt.expiration-ms=86400000
+jwt.secret=${JWT_SECRET:ForoJwtSecretKey2026DuocFullstackIIIExp1Semana2Segura}
+jwt.expiration-ms=${JWT_EXPIRATION_MS:86400000}
+
+server.port=8080

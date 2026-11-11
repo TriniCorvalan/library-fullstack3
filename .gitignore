@@ -5,7 +5,9 @@ target/
 !**/src/test/**/target/
 
 ### Credenciales locales (no versionar) ###
-src/main/resources/application.properties
+.env
+.env.*
+!.env.example
 
 ### STS ###
 .apt_generated
