@@ -16,7 +16,8 @@ concurrency:
 jobs:
   publish:
     name: Test, build and publish API image
-    if: github.ref == 'refs/heads/main'
+    # Push automático solo en main; Run workflow manual desde cualquier rama.
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
