@@ -59,8 +59,8 @@ El workflow `.github/workflows/publish-ecr.yml` corre los tests, construye la im
    - `AWS_ACCESS_KEY_ID`
    - `AWS_SECRET_ACCESS_KEY`
    - `AWS_SESSION_TOKEN`
-3. Ejecuta **Publish backend container to Amazon ECR** desde Actions (podés elegir cualquier rama en
-   **Run workflow**), o haz push a `main` con secretos vigentes.
+3. Con secretos vigentes: push a `main` o a `prepare-ecr-ecs` dispara el workflow. El botón
+   **Run workflow** en Actions solo aparece cuando este YAML ya está en la rama por defecto (`main`).
 
 Si tu cuenta Academy no es `622519216316`, cambia `AWS_ACCOUNT_ID` en el workflow. Este workflow solo
 publica la imagen; no crea servicios ECS. El deploy de la API se orquesta desde `library-ng`.
