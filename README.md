@@ -47,4 +47,20 @@ docker compose up --build
 
 O desde [`library-ng`](../library-ng) (`docker compose up --build`), que monta el mismo `.env` y wallet de este proyecto.
 
-La imagen no incluye el wallet: en local se monta como volumen; en ECS se inyectará `ORACLE_WALLET_BASE64` (paso posterior de CI/CD).
+La imagen no incluye el wallet: en local se monta como volumen; en ECS se inyectará `ORACLE_WALLET_BASE64`.
+
+## Publicar la imagen en Amazon ECR
+
+El workflow `.github/workflows/publish-ecr.yml` corre los tests, construye la imagen y la publica en
+`622519216316.dkr.ecr.us-east-1.amazonaws.com/library` con el SHA del commit como tag (tags inmutables).
+
+1. Inicia el laboratorio AWS Academy.
+2. En **Settings → Secrets and variables → Actions** de este repo configura:
+   - `AWS_ACCESS_KEY_ID`
+   - `AWS_SECRET_ACCESS_KEY`
+   - `AWS_SESSION_TOKEN`
+3. Ejecuta **Publish backend container to Amazon ECR** desde la pestaña Actions, o haz push a `main`
+   con secretos vigentes.
+
+Si tu cuenta Academy no es `622519216316`, cambia `AWS_ACCOUNT_ID` en el workflow. Este workflow solo
+publica la imagen; no crea servicios ECS. El deploy de la API se orquesta desde `library-ng`.
